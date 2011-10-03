@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-
+#include <stdio.h>
 /************Private include**********************************************/
 #include "tsh.h"
 #include "io.h"
@@ -63,9 +63,12 @@ main(int argc, char *argv[])
     PrintPError("SIGINT");
   if (signal(SIGTSTP, sig) == SIG_ERR)
     PrintPError("SIGTSTP");
+  
+
 
   while (!forceExit) /* repeat forever */
     {
+      printf("tsh> ");
       /* read command line */
       getCommandLine(&cmdLine, BUFSIZE);
 

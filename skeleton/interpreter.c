@@ -96,12 +96,14 @@ Interpret(char* cmdLine)
   int i = 0;
   commandT* cmd = getCommand(cmdLine);
 
-  printf("argc: %d\n", cmd->argc);
-  for (i = 0; cmd->argv[i] != 0; i++)
-    {
-      printf("#%d|%s|\n", i, cmd->argv[i]);
-    }
-  
+ // printf("argc: %d\n", cmd->argc);
+ // for (i = 0; cmd->argv[i] != 0; i++)
+ //   {
+ //     printf("#%d|%s|\n", i, cmd->argv[i]);
+ //   }
+ 
+ 
+
   freeCommand(cmd);
 } /* Interpret */
 
