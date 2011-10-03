@@ -76,8 +76,30 @@ getCommand(char* cmdLine);
 void
 freeCommand(commandT* cmd);
 
+int
+doesFileExist(const char * name);
 /**************Implementation***********************************************/
 
+/* 
+ * doesFileExist
+ *
+ * arguments:
+ *   char * name: the name of the command given
+ *
+ *   returns: bool, true if the file exists
+ *
+ *   This is a function that opens and closes a file to check if it 
+ *   exists.
+ */
+
+int doesFileExist(const char * name) {
+  FILE * file;
+  if ((file = fopen(name, "r"))) {
+    fclose(file);
+    return TRUE; // file exists
+  }
+  return FALSE; // file doesn't exist
+} /* doesFileExist */
 
 /*
  * Interpret
@@ -93,16 +115,16 @@ freeCommand(commandT* cmd);
 void
 Interpret(char* cmdLine)
 {
-  int i = 0;
+  // int i = 0;
   commandT* cmd = getCommand(cmdLine);
 
- // printf("argc: %d\n", cmd->argc);
- // for (i = 0; cmd->argv[i] != 0; i++)
- //   {
- //     printf("#%d|%s|\n", i, cmd->argv[i]);
- //   }
+  // printf("argc: %d\n", cmd->argc);
+  // for (i = 0; cmd->argv[i] != 0; i++)
+  //   {
+  //     printf("#%d|%s|\n", i, cmd->argv[i]);
+  //   }
  
- 
+  
 
   freeCommand(cmd);
 } /* Interpret */
