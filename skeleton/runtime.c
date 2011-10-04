@@ -296,7 +296,6 @@ Exec(commandT* cmd, bool forceFork)
         int * status = malloc(sizeof(int));
         int * freethis = status;
         wait(status);
-        printf("This is the parent");
         free(freethis);
       }
   }
@@ -377,12 +376,17 @@ RunBuiltInCmd(commandT* cmd)
   }
 
   if (strcmp(cmd->argv[0],"cd") == 0) {
-    int pass = chdir(cmd->argv[1]);
-    if (pass !=0) {
-      printf("The change directory failed");
+    int dir = 0;
+    if (cmd->argc > 1) {
+    dir = chdir(cmd->argv[1]);
+    } else {
+      dir = chdir(getenv("HOME"));
     }
+      //0 if success, -1 if failure
+  if (dir != 0) {
+    perror("cd error");
   }
-
+  }
   if (strcmp(cmd->argv[0],"exit") == 0) {
     return;
   }
@@ -478,6 +482,7 @@ free(homeCopy);
 if (found) {
   return result;
 } else {
+  perror("Unable to locate file");
   return NULL;
 }
 }
