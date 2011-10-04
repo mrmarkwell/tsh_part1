@@ -105,6 +105,9 @@ getFullPath(char * name);
 /* checks if the file does exist at path name */
 int 
 doesFileExist(const char * name);
+/* changes argv[0] to contain only the file name */
+void
+argZeroConverter(commandT* cmd);
 /************External Declaration*****************************************/
 
 /**************Implementation***********************************************/
@@ -238,8 +241,9 @@ RunCmdRedirIn(commandT* cmd, char* file)
 static void
 RunExternalCmd(commandT* cmd, bool fork)
 {
-  if (ResolveExternalCmd(cmd))
+  if (ResolveExternalCmd(cmd)) {
     Exec(cmd, fork);
+  }
 }  /* RunExternalCmd */
 
 
@@ -256,6 +260,11 @@ RunExternalCmd(commandT* cmd, bool fork)
 static bool
 ResolveExternalCmd(commandT* cmd)
 {
+  char* rootpath = getFullPath(cmd->name);
+  if (rootpath != NULL) {
+    cmd->name = rootpath;
+    return TRUE;
+  }
   return FALSE;
 } /* ResolveExternalCmd */
 
@@ -274,9 +283,54 @@ ResolveExternalCmd(commandT* cmd)
 static void
 Exec(commandT* cmd, bool forceFork)
 {
+  int pid;
+  if ((pid = fork()) < 0) {
+    perror("Fork failed");
+  } else {
+      if (pid == 0) {
+        argZeroConverter(cmd);
+        execv(cmd->name,cmd->argv);
+          perror("Execv failed");
+      }
+      else {
+        int * status = malloc(sizeof(int));
+        int * freethis = status;
+        wait(status);
+        printf("This is the parent");
+        free(freethis);
+      }
+  }
+  free(cmd->name);
 } /* Exec */
 
+/*
+ * argZeroConverter
+ *
+ * This function takes a commandT* struct and makes the 
+ * argv[0] position contain only the file name and 
+ * nothing more.
+ *
+ * It returns void
+ */
 
+void
+argZeroConverter(commandT* cmd) {
+  char* current = cmd->argv[0];
+  int slash = -1;
+  int i;
+  for (i = strlen(current); i >= 0; --i) {
+    if (current[i] == '/') {
+      slash = i;
+      break;
+    }
+  }
+  if (slash != -1) {
+    char* command = malloc((strlen(current) - slash + 1) * sizeof(char));
+    memcpy(command, current + (slash + 1) * sizeof(char), (strlen(current) - slash + 1) * sizeof(char));
+    free(cmd->argv[0]);
+    cmd->argv[0] = command;
+  }
+} /* argZeroConverter */
 /*
  * IsBuiltIn
  *
@@ -387,19 +441,19 @@ getFullPath(char * name) {
   strcat(homeCopy,name);
   if (name[0] == '/') {
     if (doesFileExist(name)) {
-    result = name;
-    found = TRUE;
+      strcpy(result,name);
+      found = TRUE;
     }
   } else {
 
       if (doesFileExist(homeCopy)) {
-      result = homeCopy;
-      found = TRUE;
+        strcpy(result,homeCopy);
+        found = TRUE;
       }  else {
         strcat(current,"/");
         strcat(current,name);
         if (doesFileExist(current)) {
-          result = current;
+          strcpy(result,current);
           found = TRUE;
         } else {
 
@@ -409,7 +463,7 @@ getFullPath(char * name) {
               strcpy(path,fullpath);
               strcat(path,"/");
               if (doesFileExist(strcat(path,name))) {
-                result = path;
+                strcpy(result,path);
                 found = TRUE;
               } 
               fullpath = strtok(NULL, ":");
