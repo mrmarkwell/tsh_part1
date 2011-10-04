@@ -8,12 +8,21 @@ tsh \- A tiny shell
 .B tsh
 .SH DESCRIPTION
 .B tsh
-description... Include the features that you implemented
+tsh is a tiny shell, or command language interpreter, that executes commands read from the standard input or from a file.  tsh has a subset of the features of the Bourne shell, and operates in exactly the same manner.
+
+tsh is intended solely for educational purposes in learning how a shell works.  It was created as a project for Northwestern Universities EECS343 - Operating Systems class.
 .SH BUILT-IN COMMANDS
 .IP exit
 Quit tsh
+.IP cd 
+.B [path]
+Change current working directory to path
+.IP echo 
+.B [string ...]
+Sends the strings input to stdout, each separated by a space
 .SH DESIGN APPROACH
-Write about your design approach, challenges, and whether you went for
-the extra credit here.
+In designing tsh, I intended to make it work as closely to the Bourne Shell, sh, as possible.  The design is intended to mirror the functionality of sh, though it is a subset of sh.  
+
+One of the greatest challenges to I faced was to find the file given in the command.  Searching all the possible locations for the file and checking if it exists at each location was a challenging section of the code to write.  The funcion getFullPath is the result of that effort.  Finding out how to handle SIGINT also took some time, though the solution wasn't terribly difficult.  I just added a global variable that keeps track of the pid of a foreground process if there is one, and pass the sigint to that process if it is received while the shell is waiting.
 .SH AUTHOR
-Your names, netids and emails here
+Matthew Markwell -- mrm297 -- matthewmarkwell@gmail.com

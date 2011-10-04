@@ -284,19 +284,19 @@ static void
 Exec(commandT* cmd, bool forceFork)
 {
   
-  if (forceFork) {
+  if (forceFork) { // Do this if you should fork
   int pid;
-    if ((pid = fork()) < 0) {
-    perror("Fork failed");
+    if ((pid = fork()) < 0) { // fork returns negative if it fails.
+    PrintPError("Fork failed");
   } else {
-      if (pid == 0) {
-        setpgid(0,0);
+      if (pid == 0) { // Child - to exec
+        setpgid(0,0); // remove from foreground process group
         argZeroConverter(cmd);
         execv(cmd->name,cmd->argv);
-          perror("Execv failed");
+          PrintPError("Execv failed");
       }
-      else {
-        fgpid = pid;
+      else {  // Parent - wait for child to be reaped.
+        fgpid = pid; // foreground process id
         int * status = malloc(sizeof(int));
         int * freethis = status;
         waitpid(pid,status,0);
@@ -325,11 +325,11 @@ argZeroConverter(commandT* cmd) {
   int i;
   for (i = strlen(current); i >= 0; --i) {
     if (current[i] == '/') {
-      slash = i;
+      slash = i;  // find the farthest right slash
       break;
     }
   }
-  if (slash != -1) {
+  if (slash != -1) { // if there is a slash, put everything after into argv[0]
     char* command = malloc((strlen(current) - slash + 1) * sizeof(char));
     memcpy(command, current + (slash + 1) * sizeof(char), (strlen(current) - slash + 1) * sizeof(char));
     free(cmd->argv[0]);
@@ -373,7 +373,7 @@ IsBuiltIn(char* cmd)
 static void
 RunBuiltInCmd(commandT* cmd)
 {
-  if (strcmp(cmd->argv[0],"echo") == 0) {
+  if (strcmp(cmd->argv[0],"echo") == 0) { // runs command echo
     int i;
     for(i = 1; i < cmd->argc; i++) {
       printf("%s ",cmd->argv[i]);
@@ -381,7 +381,7 @@ RunBuiltInCmd(commandT* cmd)
     PrintNewline();
   }
 
-  if (strcmp(cmd->argv[0],"cd") == 0) {
+  if (strcmp(cmd->argv[0],"cd") == 0) { // runs command cd
     int dir = 0;
     if (cmd->argc > 1) {
     dir = chdir(cmd->argv[1]);
@@ -390,10 +390,10 @@ RunBuiltInCmd(commandT* cmd)
     }
       //0 if success, -1 if failure
   if (dir != 0) {
-    perror("cd error");
+    PrintPError("cd error");
   }
   }
-  if (strcmp(cmd->argv[0],"exit") == 0) {
+  if (strcmp(cmd->argv[0],"exit") == 0) { // escapes if command is exit
     return;
   }
 
@@ -414,11 +414,20 @@ CheckJobs()
 {
 } /* CheckJobs */
 
+/*
+ * getCurrentWorkingDir
+ *
+ * Takes no arguments, this function uses the getcwd funcion
+ * to return the path to the current working directory
+ *
+ * Returns path to current working directory
+ *
+ */
 char *
 getCurrentWorkingDir() {
   char * path = malloc(MAXPATHLEN*sizeof(char*));
   return getcwd(path,MAXPATHLEN);
-}
+} /* getCurrentWorkingDir */
 
 
 /*
@@ -434,13 +443,13 @@ getCurrentWorkingDir() {
 char *
 getFullPath(char * name) {
   bool found = FALSE;
-  char * pathlist = getenv("PATH");
+  char * pathlist = getenv("PATH"); // prepare the memory for the possible paths
   char * home = getenv("HOME");
   char * homeCopy = malloc(MAXPATHLEN*sizeof(char*));
   strcpy(homeCopy,home);
   char * pathCopy = malloc(MAXPATHLEN*sizeof(char*));
   strcpy(pathCopy,pathlist);
-  char * result = malloc(MAXPATHLEN*sizeof(char*));
+  char * result = malloc(MAXPATHLEN*sizeof(char*)); // prepare memory to store the result
   char * current = getCurrentWorkingDir();
   // printf("argc: %d\n", cmd->argc);
   // for (i = 0; cmd->argv[i] != 0; i++)
@@ -449,24 +458,22 @@ getFullPath(char * name) {
   //   }
   strcat(homeCopy,"/");
   strcat(homeCopy,name);
-  if (name[0] == '/') {
+  if (name[0] == '/') { // if it is an absolute path, store result.
     if (doesFileExist(name)) {
       strcpy(result,name);
       found = TRUE;
     }
   } else {
-
-      if (doesFileExist(homeCopy)) {
+      if (doesFileExist(homeCopy)) { // If it is in the home directory
         strcpy(result,homeCopy);
         found = TRUE;
       }  else {
         strcat(current,"/");
         strcat(current,name);
-        if (doesFileExist(current)) {
+        if (doesFileExist(current)) { // If it is in the current directory
           strcpy(result,current);
           found = TRUE;
-        } else {
-
+        } else { // Else, check every path in PATH environment variable
           char* fullpath = strtok(pathCopy, ":");
             while (fullpath != NULL) {
               char * path = malloc(MAXPATHLEN*sizeof(char*));
@@ -488,10 +495,10 @@ free(homeCopy);
 if (found) {
   return result;
 } else {
-  perror("Unable to locate file");
+  PrintPError("Unable to locate file");
   return NULL;
 }
-}
+} /* getFullPath */
 
 
 
