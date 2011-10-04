@@ -98,6 +98,7 @@ Interpret(char* cmdLine)
 {
   // int i = 0;
   commandT* cmd = getCommand(cmdLine);
+  RunCmd(cmd);
   freeCommand(cmd);
 } /* Interpret */
 

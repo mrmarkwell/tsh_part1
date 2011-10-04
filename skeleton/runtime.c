@@ -294,9 +294,7 @@ IsBuiltIn(char* cmd)
 {
  if ( strcmp(cmd,"echo") == 0 ||
     strcmp(cmd,"cd") == 0 ||
-    strcmp(cmd,"exit") == 0 ||
-    strcmp(cmd,"INT") == 0 ||
-    strcmp(cmd,"SLEEP") == 0 ) {
+    strcmp(cmd,"exit") == 0) {
    return TRUE;
  }  
   return FALSE;
@@ -316,6 +314,25 @@ IsBuiltIn(char* cmd)
 static void
 RunBuiltInCmd(commandT* cmd)
 {
+  if (strcmp(cmd->argv[0],"echo") == 0) {
+    int i;
+    for(i = 1; i < cmd->argc; i++) {
+      printf("%s ",cmd->argv[i]);
+    }
+    PrintNewline();
+  }
+
+  if (strcmp(cmd->argv[0],"cd") == 0) {
+    int pass = chdir(cmd->argv[1]);
+    if (pass !=0) {
+      printf("The change directory failed");
+    }
+  }
+
+  if (strcmp(cmd->argv[0],"exit") == 0) {
+    return;
+  }
+
 } /* RunBuiltInCmd */
 
 
