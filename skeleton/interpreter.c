@@ -118,6 +118,9 @@ Interpret(char* cmdLine)
   // int i = 0;
   commandT* cmd = getCommand(cmdLine);
   char * pathlist = getenv("PATH");
+  char * home = getenv("HOME");
+  char * homeCopy = malloc(2*sizeof(char*)*(sizeof(home)));
+  strcpy(homeCopy,home);
   char * pathCopy = malloc(2*sizeof(char*)*(sizeof(pathlist)));
   strcpy(pathCopy,pathlist);
   // printf("argc: %d\n", cmd->argc);
@@ -125,27 +128,34 @@ Interpret(char* cmdLine)
   //   {
   //     printf("#%d|%s|\n", i, cmd->argv[i]);
   //   }
- 
-  if (doesFileExist(cmd->name)) {
-  // If the first character is slash, print cmd->name
-  // else print 
-  } else {
-    char* fullpath = strtok(pathCopy, ":");
-    while (fullpath != NULL) {
-      char * path = malloc(2*(sizeof(fullpath) + sizeof(cmd->name)));
-      strcpy(path,fullpath);
-      strcat(path,"/");
-      if (doesFileExist(strcat(path,cmd->name))) {
-        printf("The file exists at %s\n",path);
 
-      }
-      fullpath = strtok(NULL, ":");
-      free(path);
+  strcat(homeCopy,"/");
+  strcat(homeCopy,cmd->name);
+  if (cmd->name[0] == '/') {
+    if (doesFileExist(cmd->name)) {
+      printf("The absolute path is %s\n\n",cmd->name);
     }
-    free(pathCopy);
-  }
+  } else {
 
-  freeCommand(cmd);
+      if (doesFileExist(homeCopy)) {
+        printf("Found in the home directory, abs path: %s\n\n",homeCopy);
+      }  else {
+          char* fullpath = strtok(pathCopy, ":");
+            while (fullpath != NULL) {
+              char * path = malloc(2*(sizeof(fullpath) + sizeof(cmd->name)));
+              strcpy(path,fullpath);
+              strcat(path,"/");
+              if (doesFileExist(strcat(path,cmd->name))) {
+                printf("The file exists at %s\n",path);
+              } 
+              fullpath = strtok(NULL, ":");
+              free(path);
+            }
+          }
+      free(pathCopy);
+      free(homeCopy);
+      freeCommand(cmd);
+  }
 } /* Interpret */
 
 
