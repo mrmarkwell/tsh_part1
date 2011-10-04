@@ -82,27 +82,6 @@ int
 doesFileExist(const char * name);
 /**************Implementation***********************************************/
 
-/* 
- * doesFileExist
- *
- * arguments:
- *   char * name: the name of the command given
- *
- *   returns: bool, true if the file exists
- *
- *   This is a function that opens and closes a file to check if it 
- *   exists.
- */
-
-int doesFileExist(const char * name) {
-  FILE * file;
-  if ((file = fopen(name, "r"))) {
-    fclose(file);
-    return TRUE; // file exists
-  }
-  return FALSE; // file doesn't exist
-} /* doesFileExist */
-
 /*
  * Interpret
  *
@@ -119,55 +98,7 @@ Interpret(char* cmdLine)
 {
   // int i = 0;
   commandT* cmd = getCommand(cmdLine);
-  char * pathlist = getenv("PATH");
-  char * home = getenv("HOME");
-  char * homeCopy = malloc(MAXPATHLEN*sizeof(char*));
-  strcpy(homeCopy,home);
-  char * pathCopy = malloc(MAXPATHLEN*sizeof(char*));
-  strcpy(pathCopy,pathlist);
-
-  char * current = getCurrentWorkingDir();
-  // printf("argc: %d\n", cmd->argc);
-  // for (i = 0; cmd->argv[i] != 0; i++)
-  //   {
-  //     printf("#%d|%s|\n", i, cmd->argv[i]);
-  //   }
-  strcat(homeCopy,"/");
-  strcat(homeCopy,cmd->name);
-  if (cmd->name[0] == '/') {
-    if (doesFileExist(cmd->name)) {
-      printf("The absolute path is %s\n\n",cmd->name);
-    }
-  } else {
-
-      if (doesFileExist(homeCopy)) {
-        printf("Found in the home directory, abs path: %s\n\n",homeCopy);
-      }  else {
-        strcat(current,"/");
-        strcat(current,cmd->name);
-        if (doesFileExist(current)) {
-          printf("The file is in the current directory, path: %s\n\n",current);
-        } else {
-
-          char* fullpath = strtok(pathCopy, ":");
-            while (fullpath != NULL) {
-              char * path = malloc(2*(sizeof(fullpath) + sizeof(cmd->name)));
-              strcpy(path,fullpath);
-              strcat(path,"/");
-              if (doesFileExist(strcat(path,cmd->name))) {
-                printf("The file exists at %s\n",path);
-              } 
-              fullpath = strtok(NULL, ":");
-              free(path);
-            }
-          }
-      }
-  }
-free(current);
-free(pathCopy);
-free(homeCopy);
-freeCommand(cmd);
-  
+  freeCommand(cmd);
 } /* Interpret */
 
 

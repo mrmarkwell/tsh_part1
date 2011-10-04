@@ -99,6 +99,12 @@ RunBuiltInCmd(commandT*);
 /* checks whether a command is a builtin command */
 static bool
 IsBuiltIn(char*);
+/* finds the full path of a given name */
+char * 
+getFullPath(char * name);
+/* checks if the file does exist at path name */
+int 
+doesFileExist(const char * name);
 /************External Declaration*****************************************/
 
 /**************Implementation***********************************************/
@@ -286,6 +292,13 @@ Exec(commandT* cmd, bool forceFork)
 static bool
 IsBuiltIn(char* cmd)
 {
+ if ( strcmp(cmd,"echo") == 0 ||
+    strcmp(cmd,"cd") == 0 ||
+    strcmp(cmd,"exit") == 0 ||
+    strcmp(cmd,"INT") == 0 ||
+    strcmp(cmd,"SLEEP") == 0 ) {
+   return TRUE;
+ }  
   return FALSE;
 } /* IsBuiltIn */
 
@@ -325,4 +338,99 @@ getCurrentWorkingDir() {
   char * path = malloc(MAXPATHLEN*sizeof(char*));
   return getcwd(path,MAXPATHLEN);
 }
+
+
+/*
+ * getFullPath
+ *
+ * This function takes the cmd->name and returns
+ * the full path to the file specified in cmd->name
+ *
+ * It returns a pointer to NULL if it failed to find the file.
+ *
+ */
+
+char *
+getFullPath(char * name) {
+  bool found = FALSE;
+  char * pathlist = getenv("PATH");
+  char * home = getenv("HOME");
+  char * homeCopy = malloc(MAXPATHLEN*sizeof(char*));
+  strcpy(homeCopy,home);
+  char * pathCopy = malloc(MAXPATHLEN*sizeof(char*));
+  strcpy(pathCopy,pathlist);
+  char * result = malloc(MAXPATHLEN*sizeof(char*));
+  char * current = getCurrentWorkingDir();
+  // printf("argc: %d\n", cmd->argc);
+  // for (i = 0; cmd->argv[i] != 0; i++)
+  //   {
+  //     printf("#%d|%s|\n", i, cmd->argv[i]);
+  //   }
+  strcat(homeCopy,"/");
+  strcat(homeCopy,name);
+  if (name[0] == '/') {
+    if (doesFileExist(name)) {
+    result = name;
+    found = TRUE;
+    }
+  } else {
+
+      if (doesFileExist(homeCopy)) {
+      result = homeCopy;
+      found = TRUE;
+      }  else {
+        strcat(current,"/");
+        strcat(current,name);
+        if (doesFileExist(current)) {
+          result = current;
+          found = TRUE;
+        } else {
+
+          char* fullpath = strtok(pathCopy, ":");
+            while (fullpath != NULL) {
+              char * path = malloc(MAXPATHLEN*sizeof(char*));
+              strcpy(path,fullpath);
+              strcat(path,"/");
+              if (doesFileExist(strcat(path,name))) {
+                result = path;
+                found = TRUE;
+              } 
+              fullpath = strtok(NULL, ":");
+              free(path);
+            }
+          }
+      }
+  }
+free(current);
+free(pathCopy);
+free(homeCopy);
+if (found) {
+  return result;
+} else {
+  return NULL;
+}
+}
+
+
+
+/* 
+ * doesFileExist
+ *
+ * arguments:
+ *   char * name: the name of the command given
+ *
+ *   returns: bool, true if the file exists
+ *
+ *   This is a function that opens and closes a file to check if it 
+ *   exists.
+ */
+
+int doesFileExist(const char * name) {
+  FILE * file;
+  if ((file = fopen(name, "r"))) {
+    fclose(file);
+    return TRUE; // file exists
+  }
+  return FALSE; // file doesn't exist
+} /* doesFileExist */
 
