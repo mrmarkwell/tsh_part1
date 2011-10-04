@@ -117,14 +117,33 @@ Interpret(char* cmdLine)
 {
   // int i = 0;
   commandT* cmd = getCommand(cmdLine);
-
+  char * pathlist = getenv("PATH");
+  char * pathCopy = malloc(2*sizeof(char*)*(sizeof(pathlist)));
+  strcpy(pathCopy,pathlist);
   // printf("argc: %d\n", cmd->argc);
   // for (i = 0; cmd->argv[i] != 0; i++)
   //   {
   //     printf("#%d|%s|\n", i, cmd->argv[i]);
   //   }
  
-  
+  if (doesFileExist(cmd->name)) {
+  // If the first character is slash, print cmd->name
+  // else print 
+  } else {
+    char* fullpath = strtok(pathCopy, ":");
+    while (fullpath != NULL) {
+      char * path = malloc(2*(sizeof(fullpath) + sizeof(cmd->name)));
+      strcpy(path,fullpath);
+      strcat(path,"/");
+      if (doesFileExist(strcat(path,cmd->name))) {
+        printf("The file exists at %s\n",path);
+
+      }
+      fullpath = strtok(NULL, ":");
+      free(path);
+    }
+    free(pathCopy);
+  }
 
   freeCommand(cmd);
 } /* Interpret */
