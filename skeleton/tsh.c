@@ -103,8 +103,8 @@ static void
 sig(int signo)
 {
   if (fgpid == 0) {
-    kill(getpid(), SIGKILL);
     PrintNewline();
+    exit(1);
   } else {
     kill (fgpid, SIGINT);
   }
