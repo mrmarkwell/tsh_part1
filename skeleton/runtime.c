@@ -283,23 +283,29 @@ ResolveExternalCmd(commandT* cmd)
 static void
 Exec(commandT* cmd, bool forceFork)
 {
+  
+  if (forceFork) {
   int pid;
-  if ((pid = fork()) < 0) {
+    if ((pid = fork()) < 0) {
     perror("Fork failed");
   } else {
       if (pid == 0) {
+        setpgid(0,0);
         argZeroConverter(cmd);
         execv(cmd->name,cmd->argv);
           perror("Execv failed");
       }
       else {
+        fgpid = pid;
         int * status = malloc(sizeof(int));
         int * freethis = status;
-        wait(status);
+        waitpid(pid,status,0);
+        fgpid = 0;
         free(freethis);
       }
   }
   free(cmd->name);
+  }
 } /* Exec */
 
 /*

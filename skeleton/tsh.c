@@ -11,6 +11,7 @@
 #define __MYSS_IMPL__
 
 /************System include***********************************************/
+#include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
@@ -101,4 +102,10 @@ main(int argc, char *argv[])
 static void
 sig(int signo)
 {
+  if (fgpid == 0) {
+    kill(getpid(), SIGKILL);
+    PrintNewline();
+  } else {
+    kill (fgpid, SIGINT);
+  }
 } /* sig */
