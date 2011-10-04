@@ -46,6 +46,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/param.h>
+#include <unistd.h>
 #include "string.h"
 
 /************Private include**********************************************/
@@ -119,16 +121,17 @@ Interpret(char* cmdLine)
   commandT* cmd = getCommand(cmdLine);
   char * pathlist = getenv("PATH");
   char * home = getenv("HOME");
-  char * homeCopy = malloc(2*sizeof(char*)*(sizeof(home)));
+  char * homeCopy = malloc(MAXPATHLEN*sizeof(char*));
   strcpy(homeCopy,home);
-  char * pathCopy = malloc(2*sizeof(char*)*(sizeof(pathlist)));
+  char * pathCopy = malloc(MAXPATHLEN*sizeof(char*));
   strcpy(pathCopy,pathlist);
+
+  char * current = getCurrentWorkingDir();
   // printf("argc: %d\n", cmd->argc);
   // for (i = 0; cmd->argv[i] != 0; i++)
   //   {
   //     printf("#%d|%s|\n", i, cmd->argv[i]);
   //   }
-
   strcat(homeCopy,"/");
   strcat(homeCopy,cmd->name);
   if (cmd->name[0] == '/') {
@@ -140,6 +143,12 @@ Interpret(char* cmdLine)
       if (doesFileExist(homeCopy)) {
         printf("Found in the home directory, abs path: %s\n\n",homeCopy);
       }  else {
+        strcat(current,"/");
+        strcat(current,cmd->name);
+        if (doesFileExist(current)) {
+          printf("The file is in the current directory, path: %s\n\n",current);
+        } else {
+
           char* fullpath = strtok(pathCopy, ":");
             while (fullpath != NULL) {
               char * path = malloc(2*(sizeof(fullpath) + sizeof(cmd->name)));
@@ -152,10 +161,13 @@ Interpret(char* cmdLine)
               free(path);
             }
           }
-      free(pathCopy);
-      free(homeCopy);
-      freeCommand(cmd);
+      }
   }
+free(current);
+free(pathCopy);
+free(homeCopy);
+freeCommand(cmd);
+  
 } /* Interpret */
 
 

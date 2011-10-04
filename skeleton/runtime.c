@@ -49,6 +49,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -318,3 +319,10 @@ void
 CheckJobs()
 {
 } /* CheckJobs */
+
+char *
+getCurrentWorkingDir() {
+  char * path = malloc(MAXPATHLEN*sizeof(char*));
+  return getcwd(path,MAXPATHLEN);
+}
+
