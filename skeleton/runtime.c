@@ -286,12 +286,19 @@ Exec(commandT* cmd, bool forceFork)
   
   if (forceFork) { // Do this if you should fork
   int pid;
+  sigset_t x;
+  sigemptyset (&x);
+  sigaddset(&x, SIGCHLD);
+  if(sigprocmask(SIG_BLOCK,&x,NULL) != 0) {
+    PrintPError("Signal Block Failure");
+  }
     if ((pid = fork()) < 0) { // fork returns negative if it fails.
     PrintPError("Fork failed");
   } else {
       if (pid == 0) { // Child - to exec
         setpgid(0,0); // remove from foreground process group
         argZeroConverter(cmd);
+        sigprocmask(SIG_UNBLOCK,&x,NULL);
         execv(cmd->name,cmd->argv);
           PrintPError("Execv failed");
       }
@@ -495,7 +502,8 @@ free(homeCopy);
 if (found) {
   return result;
 } else {
-  PrintPError("Unable to locate file");
+  PrintPError(name);
+  free(result);
   return NULL;
 }
 } /* getFullPath */

@@ -102,7 +102,6 @@ static void
 sig(int signo)
 {
   if (fgpid == 0) {
-    PrintNewline();
   } else {
     kill (fgpid, SIGINT);
   }
