@@ -362,7 +362,13 @@ IsBuiltIn(char* cmd)
     strcmp(cmd,"cd") == 0 ||
     strcmp(cmd,"exit") == 0) {
    return TRUE;
- }  
+ } 
+ int i;
+ for (i=0; i < strlen(cmd); i++) {
+ if (cmd[i] == '=') {
+   return TRUE;
+ }
+}
   return FALSE;
 } /* IsBuiltIn */
 
@@ -380,12 +386,20 @@ IsBuiltIn(char* cmd)
 static void
 RunBuiltInCmd(commandT* cmd)
 {
-  if (strcmp(cmd->argv[0],"echo") == 0) { // runs command echo
+  if (strcmp(cmd->argv[0], "echo") == 0) { // runs command echo
     int i;
-    for(i = 1; i < cmd->argc; i++) {
-      printf("%s ",cmd->argv[i]);
-    }
-    PrintNewline();
+     for (i = 1; i < cmd->argc; ++i) {
+       if (cmd->argv[i][0] != '$') {
+          printf("%s ", cmd->argv[i]);
+       } else {
+         char* varName = malloc(strlen(cmd->argv[i])*sizeof(char));
+         memcpy(varName, cmd->argv[i] + sizeof(char), strlen(cmd->argv[i]) * sizeof(char));
+        printf("%s ", getenv(varName));
+        free(varName);
+         }
+     }
+     PrintNewline();
+     return;
   }
 
   if (strcmp(cmd->argv[0],"cd") == 0) { // runs command cd
@@ -403,6 +417,27 @@ RunBuiltInCmd(commandT* cmd)
   if (strcmp(cmd->argv[0],"exit") == 0) { // escapes if command is exit
     return;
   }
+
+// This code is for setting the environment 
+  int i;
+    int count = -1;
+    for (i = 0; strlen(cmd->name); ++i) {
+      if (cmd->name[i] == '=') {
+        count = i;
+        break;
+      }
+    }
+                              
+char* thisvar = malloc((count + 1) * sizeof(char));
+memcpy(thisvar, cmd->name, count*sizeof(char));
+thisvar[count] = '\0';
+char* mem = malloc((strlen(cmd->name) - count + 1) * sizeof(char));
+memcpy(mem, cmd->name + (count + 1) * sizeof(char), (strlen(cmd->name) - count + 1) * sizeof(char));
+setenv(thisvar, mem, 1);
+free(thisvar);
+free(mem);
+
+
 
 } /* RunBuiltInCmd */
 
