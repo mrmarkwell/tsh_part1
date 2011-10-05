@@ -502,6 +502,7 @@ free(homeCopy);
 if (found) {
   return result;
 } else {
+  free(result);
   PrintPError("Unable to locate file");
   return NULL;
 }
