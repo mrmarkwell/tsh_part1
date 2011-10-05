@@ -458,11 +458,6 @@ getFullPath(char * name) {
   strcpy(pathCopy,pathlist);
   char * result = malloc(MAXPATHLEN*sizeof(char*)); // prepare memory to store the result
   char * current = getCurrentWorkingDir();
-  // printf("argc: %d\n", cmd->argc);
-  // for (i = 0; cmd->argv[i] != 0; i++)
-  //   {
-  //     printf("#%d|%s|\n", i, cmd->argv[i]);
-  //   }
   strcat(homeCopy,"/");
   strcat(homeCopy,name);
   if (name[0] == '/') { // if it is an absolute path, store result.
@@ -503,7 +498,7 @@ if (found) {
   return result;
 } else {
   free(result);
-  PrintPError("Unable to locate file");
+  PrintPError(name);
   return NULL;
 }
 } /* getFullPath */
