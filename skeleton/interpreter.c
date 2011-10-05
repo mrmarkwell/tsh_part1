@@ -98,7 +98,6 @@ Interpret(char* cmdLine)
 {
   commandT* cmd = getCommand(cmdLine);
   RunCmd(cmd);
-  fflush(stdout);
   freeCommand(cmd);
 } /* Interpret */
 

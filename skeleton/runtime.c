@@ -286,19 +286,12 @@ Exec(commandT* cmd, bool forceFork)
   
   if (forceFork) { // Do this if you should fork
   int pid;
-  sigset_t x;
-  sigemptyset (&x);
-  sigaddset(&x, SIGCHLD);
-  if(sigprocmask(SIG_BLOCK,&x,NULL) != 0) {
-    PrintPError("Signal Block Failure");
-  }
     if ((pid = fork()) < 0) { // fork returns negative if it fails.
     PrintPError("Fork failed");
   } else {
       if (pid == 0) { // Child - to exec
         setpgid(0,0); // remove from foreground process group
         argZeroConverter(cmd);
-        sigprocmask(SIG_UNBLOCK,&x,NULL);
         execv(cmd->name,cmd->argv);
           PrintPError("Execv failed");
       }
@@ -362,13 +355,7 @@ IsBuiltIn(char* cmd)
     strcmp(cmd,"cd") == 0 ||
     strcmp(cmd,"exit") == 0) {
    return TRUE;
- } 
- int i;
- for (i=0; i < strlen(cmd); i++) {
- if (cmd[i] == '=') {
-   return TRUE;
- }
-}
+ }  
   return FALSE;
 } /* IsBuiltIn */
 
@@ -386,20 +373,12 @@ IsBuiltIn(char* cmd)
 static void
 RunBuiltInCmd(commandT* cmd)
 {
-  if (strcmp(cmd->argv[0], "echo") == 0) { // runs command echo
+  if (strcmp(cmd->argv[0],"echo") == 0) { // runs command echo
     int i;
-     for (i = 1; i < cmd->argc; ++i) {
-       if (cmd->argv[i][0] != '$') {
-          printf("%s ", cmd->argv[i]);
-       } else {
-         char* varName = malloc(strlen(cmd->argv[i])*sizeof(char));
-         memcpy(varName, cmd->argv[i] + sizeof(char), strlen(cmd->argv[i]) * sizeof(char));
-        printf("%s ", getenv(varName));
-        free(varName);
-         }
-     }
-     PrintNewline();
-     return;
+    for(i = 1; i < cmd->argc; i++) {
+      printf("%s ",cmd->argv[i]);
+    }
+    PrintNewline();
   }
 
   if (strcmp(cmd->argv[0],"cd") == 0) { // runs command cd
@@ -417,27 +396,6 @@ RunBuiltInCmd(commandT* cmd)
   if (strcmp(cmd->argv[0],"exit") == 0) { // escapes if command is exit
     return;
   }
-
-// This code is for setting the environment 
-  int i;
-    int count = -1;
-    for (i = 0; strlen(cmd->name); ++i) {
-      if (cmd->name[i] == '=') {
-        count = i;
-        break;
-      }
-    }
-                              
-char* thisvar = malloc((count + 1) * sizeof(char));
-memcpy(thisvar, cmd->name, count*sizeof(char));
-thisvar[count] = '\0';
-char* mem = malloc((strlen(cmd->name) - count + 1) * sizeof(char));
-memcpy(mem, cmd->name + (count + 1) * sizeof(char), (strlen(cmd->name) - count + 1) * sizeof(char));
-setenv(thisvar, mem, 1);
-free(thisvar);
-free(mem);
-
-
 
 } /* RunBuiltInCmd */
 
@@ -537,8 +495,7 @@ free(homeCopy);
 if (found) {
   return result;
 } else {
-  PrintPError(name);
-  free(result);
+  PrintPError("Unable to locate file");
   return NULL;
 }
 } /* getFullPath */
